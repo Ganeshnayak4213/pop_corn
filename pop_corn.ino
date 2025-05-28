@@ -1,10 +1,16 @@
 #include <AccelStepper.h>
+#include "max6675.h"
+
 const int corn_push_step=2;
 const int corn_push_dir=3;
 const int corn_push_hmp=4;
 const int rpwm=5;
 const int lpwm=6;
 const int heater=7;
+
+int SO = 50;     // MISO
+int CS = 8;     // Any digital pin
+int CLK = 52;    // SCK
 
 void all_axis_homing();
 void corn_push();
@@ -15,8 +21,12 @@ void heater_off();
 
 AccelStepper corn_push_stepper(AccelStepper::DRIVER, corn_push_step, corn_push_dir);
 
+MAX6675 thermocouple(CLK, CS, SO);
+
 
 void setup() {
+  Serial.begin(9600);
+
 pinMode(corn_push_step,OUTPUT);
 pinMode(corn_push_dir,OUTPUT);
 pinMode(corn_push_hmp,INPUT_PULLUP);
@@ -32,6 +42,7 @@ corn_push_stepper.setAcceleration(5000);
 }
 
 void loop() {
+  /*
   all_axis_homing();
   delay(100);
   corn_push();
@@ -41,7 +52,16 @@ void loop() {
   blower();
   delay(100);
   heater_off();
-  delay(100);
+  delay(2000);
+  */
+  digitalWrite(heater,LOW);
+  analogWrite(rpwm, 250); // 50% speed
+  digitalWrite(lpwm, LOW); // Ensure only one direction
+
+  Serial.print("Temperature: ");
+  Serial.print(thermocouple.readCelsius());
+  Serial.println(" °C");
+  delay(1000);
 
 }
 
@@ -77,11 +97,11 @@ void corn_pull(){
 }
 
 void blower(){
-  analogWrite(rpwm, 90); // 50% speed
+  analogWrite(rpwm, 80); // 50% speed
   digitalWrite(lpwm, LOW); // Ensure only one direction
   digitalWrite(heater, LOW); 
 
-  delay(90000);           //40 seconds
+  delay(70000);           //40 seconds
   //analogWrite(rpwm, 0); // 0% speed
 
 }
